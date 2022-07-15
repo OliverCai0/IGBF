@@ -1,21 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 
-export default function CameraView() {
+export default function CameraView(props) {
+  let cameraRef = useRef()
+  let cachedImages = props.cachedImages
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(CameraType.back);
   const [isCameraReady, setIsCameraReady] = useState(false);
 
   const onCameraReady = () => {
-    setIsCameraReady(isCameraReady);
+    setIsCameraReady(true);
   };
 
-  const takePicture = () => {
+  const takePicture = async () => {
     console.log('picture taken');
-
+    let options = {
+      quality: 1,
+      base64: true,
+      exif: false
+    };
+    
+    let newPhoto = await cameraRef.current.takePictureAsync(options);
+    var cachedImagesCopy = props.cachedImages.slice()
+    cachedImagesCopy.push(newPhoto)
+    props.setCachedImages(cachedImagesCopy)
   };
+
+  const showCachedImages = () => {
+    for(let i = 0; i < cachedImages.length; i ++){
+      console.log(cachedImages[i].uri)
+    }
+    props.setPage(2);
+  }
 
   useEffect(() => {
     (async () => {
@@ -32,7 +50,8 @@ export default function CameraView() {
   }
   return (
     <View style={styles.container}>
-      <Camera style={styles.camera} type={type}>
+      <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
+      <Camera style={styles.camera} ref={cameraRef} type={type} onCameraReady={onCameraReady}></Camera>
         <View style={styles.commandBar}>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -52,8 +71,13 @@ export default function CameraView() {
             <Text style={styles.text}> Take Picture </Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={() => {showCachedImages()}}>
+                <Text style={styles.text}>Show Cached</Text>
+              </TouchableOpacity>
+          </View>
         </View>
-      </Camera>
+        <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
     </View>
   );
 }
@@ -61,16 +85,16 @@ export default function CameraView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
   },
   camera: {
-    flex: 1,
+    flex: 10,
   },
   commandBar: {
     flexDirection: 'row',
-    height: '5%',
-    width: '100%',
-    position: 'absolute',
-    bottom: 0,
+    flex: 1,
+    alignSelf: 'flex-end',
+    justifyContent: 'center',
   },
   buttonContainer: {
     flex: 1,
@@ -78,15 +102,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    // margin: 20,
   },
   button: {
     flex: 1,
-    alignSelf: 'flex-end',
     alignItems: 'center',
+  },
+  safeAreaView:{
+    backgroundColor: 'black',
   },
   text: {
     fontSize: 18,
     color: 'white',
+    flex: 1,
+    textAlign: 'center',
   },
+  topBar: {
+    flex: 1,
+  }
 });
