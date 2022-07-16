@@ -15,7 +15,7 @@ export default function GalleryView(props) {
                     {props.cachedImages.map(x =>
                     <View key={x.uri} style={styles.imageContainer}>
                     <Image source={{ uri: "data:image/jpg;base64," + x.base64 }}
-                        style={{width: 50 * 2, height: 80 * 2}}/>
+                        style={{width: 50 * 3, height: 80 * 3}}/>
                     </View>
                     )}
             </View>
@@ -58,9 +58,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     imageContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '50%',
     },
     safeAreaView:{
-      backgroundColor: 'black',
+      backgroundColor: 'white',
     },
     text: {
       fontSize: 18,
