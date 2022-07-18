@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
+import Draggable from './Draggable';
+import DraggableUpdated from './DraggableUpdated';
 
 export default function CameraView(props) {
   let cameraRef = useRef()
@@ -9,6 +12,8 @@ export default function CameraView(props) {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(CameraType.back);
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [image, setImage] = useState(null);
+  const [cameraCoords, setCameraCoords] = useState(null);
 
   const [imagePadding, setImagePadding] = useState(0);
   const [ratio, setRatio] = useState('4:3');  // default is 4:3
@@ -20,6 +25,21 @@ export default function CameraView(props) {
     setIsCameraReady(true);
     if (!isRatioSet) {
       await prepareRatio();
+    }
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
     }
   };
 
@@ -104,11 +124,68 @@ export default function CameraView(props) {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar]}>
         <Text style={styles.againstBlack}>IGBF</Text>
+          <TouchableOpacity style={[styles.button, 
+                                    {alignItems: 'flex-end', justifyContent: 'center'}
+                                    ]} onPress={() => {showCachedImages()}}>
+            <Text style={styles.text}>Cached</Text>
+          </TouchableOpacity>
       </View>
-      <Camera style={[styles.camera, {marginTop: imagePadding, marginBottom: imagePadding}]} ref={cameraRef} type={type} onCameraReady={onCameraReady}></Camera>
+      <Camera style={[styles.camera]} 
+              ref={cameraRef} type={type} onCameraReady={onCameraReady}
+              onLayout={ event => {
+                const layout = event.nativeEvent.layout;
+                console.log('height:', layout.height);
+                console.log('width:', layout.width);
+                console.log('Camera x:', layout.x);
+                console.log('Camera y:', layout.y);
+                setCameraCoords({
+                  min_x : 0,
+                  min_y : 0,
+                  max_x : layout.width,
+                  max_y : layout.height
+                })
+              }}>
+        { cameraCoords && image &&
+          // <Draggable
+          //           imageSource={image}
+          //           renderSize={200}
+          //           x={cameraCoords.min_x} 
+          //           y={0} 
+          //           renderColor='transparent' 
+          //           renderText='B'
+          //           minX={cameraCoords.min_x}
+          //           minY={0}
+          //           maxX={cameraCoords.max_x}
+          //           maxY={cameraCoords.max_y}>
+          // </Draggable>
+          <DraggableUpdated x={0} y={0} width={cameraCoords.max_x} height={cameraCoords.max_y}
+                            image={image}></DraggableUpdated>
+        }
+      </Camera>
+        <View style={styles.cameraBar}>
+            <TouchableOpacity
+                style={styles.cameraButton}
+                onPress={() => {
+                  takePicture();
+                }}>
+            </TouchableOpacity>
+        </View>
         <View style={styles.commandBar}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} 
+            onPress={()  => {
+              pickImage();
+            }}>
+              {(image && 
+              <TouchableOpacity>
+              <Image source={{uri: image}} style={{width :'20%', aspectRatio : 1}}/>
+              </TouchableOpacity>
+              ) ||
+              <Text style={styles.text}>Pick</Text>}
+            </TouchableOpacity>
+          </View>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.button}
@@ -117,20 +194,6 @@ export default function CameraView(props) {
               }}>
               <Text style={styles.text}> Flip </Text>
             </TouchableOpacity>
-          </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  takePicture();
-                }}>
-            <Text style={styles.text}> Take Picture </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={() => {showCachedImages()}}>
-                <Text style={styles.text}>Show Cached</Text>
-              </TouchableOpacity>
           </View>
         </View>
         <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
@@ -149,6 +212,18 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 10,
+  },
+  cameraBar: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+  },
+  cameraButton: {
+    borderRadius: 100,
+    aspectRatio: 1,
+    width: '15%',
+    backgroundColor: 'white',
   },
   commandBar: {
     flexDirection: 'row',
@@ -179,5 +254,6 @@ const styles = StyleSheet.create({
   topBar: {
     flex: 1,
     backgroundColor: 'black',
+    flexDirection: 'row',
   }
 });
