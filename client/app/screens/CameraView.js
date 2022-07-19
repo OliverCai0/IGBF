@@ -148,18 +148,6 @@ export default function CameraView(props) {
                 })
               }}>
         { cameraCoords && image &&
-          // <Draggable
-          //           imageSource={image}
-          //           renderSize={200}
-          //           x={cameraCoords.min_x} 
-          //           y={0} 
-          //           renderColor='transparent' 
-          //           renderText='B'
-          //           minX={cameraCoords.min_x}
-          //           minY={0}
-          //           maxX={cameraCoords.max_x}
-          //           maxY={cameraCoords.max_y}>
-          // </Draggable>
           <DraggableUpdated x={0} y={0} width={cameraCoords.max_x} height={cameraCoords.max_y}
                             image={image}></DraggableUpdated>
         }
@@ -179,7 +167,7 @@ export default function CameraView(props) {
               pickImage();
             }}>
               {(image && 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => {pickImage();}}>
               <Image source={{uri: image}} style={{width :'20%', aspectRatio : 1}}/>
               </TouchableOpacity>
               ) ||

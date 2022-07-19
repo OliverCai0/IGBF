@@ -5,24 +5,13 @@ const DraggableUpdated = (props) => {
   const width = props.width;
   const height = props.height;
   const image = props.image;
+  const startingHeight = 150;
   console.log(height)
   const [x, setX] = useState(props.x);
   const [y, setY] = useState(props.y);
 
   const pan = useRef(new Animated.ValueXY()).current;
-  const panZoom = useRef({size: 150});
-
-  const computeBoundsX = (x_move) => {
-    console.log(x);
-    if (x + x_move < 0) {
-        return 0;
-    }
-    if (x + x_move > width) {
-        return 0;
-    }
-    setX(x + x_move);
-    return x_move
-  }
+  const panZoom = useRef(new Animated.ValueXY()).current;
 
   const expandResponder = useRef(PanResponder.create({
     // Ask to be the responder:
@@ -37,17 +26,24 @@ const DraggableUpdated = (props) => {
       // The gesture has started. Show visual feedback so the user knows
       // what is happening!
       // gestureState.d{x,y} will be set to zero now
+      pan.setOffset({
+        x: panZoom.x._value,
+        y: panZoom.y._value
+      });
     },
-    onPanResponderMove: (evt, gestureState) => {
+    onPanResponderMove: (e, gestureState) => {
       // The most recent move distance is gestureState.move{X,Y}
       // The accumulated gesture distance since becoming responder is
       // gestureState.d{x,y}
+      Animated.event([null, {dx: panZoom.x, dy: panZoom.y}], {useNativeDriver: false})(e, gestureState)
+      console.log('size pan', panZoom);
     },
     onPanResponderTerminationRequest: (evt, gestureState) =>
       true,
     onPanResponderRelease: (evt, gestureState) => {
       // The user has released all touches while this view is the
       // responder. This typically means a gesture has succeeded
+      panZoom.flattenOffset();
     },
     onPanResponderTerminate: (evt, gestureState) => {
       // Another component has become the responder, so this gesture
@@ -118,10 +114,9 @@ const DraggableUpdated = (props) => {
     <Animated.View style={{
         left: 0,
         top: 0,
-        transform: [{ translateX: pan.x }, { translateY: pan.y }],
-        backgroundColor: 'black',
-        width: 150,
-        height: 150
+        transform: [{ translateX: pan.x }, { translateY: pan.y }, 
+                    {scaleX: panZoom.x.interpolate({inputRange: [0,100], outputRange: [1,4]})}, 
+                    {scaleY: panZoom.y.interpolate({inputRange: [0,100], outputRange: [1,4]})}],
       }}>
       <Animated.View
         style={{
@@ -133,15 +128,15 @@ const DraggableUpdated = (props) => {
       >
         <Image style={styles.box} source={{uri : image}}/>
       </Animated.View>
-      <TouchableOpacity style={{position: 'absolute', 
+      <Animated.View style={{position: 'absolute', 
                                       backgroundColor: 'white', 
                                       aspectRatio: 1, 
-                                      width: 15,
+                                      width: 20,
                                       borderRadius: 100,
                                       left: 150,
                                       top: 150,
                                       }}
-                        {...expandResponder.panHandlers}></TouchableOpacity>
+                        {...expandResponder.panHandlers}></Animated.View>
     </Animated.View>
   );
 }
