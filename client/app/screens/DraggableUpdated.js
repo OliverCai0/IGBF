@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Animated, View, StyleSheet, PanResponder, Text, Image, TouchableOpacity } from "react-native";
+import { Feather } from '@expo/vector-icons'; 
+import { FontAwesome } from '@expo/vector-icons'; 
 
 const DraggableUpdated = (props) => {
   const width = props.width;
@@ -114,29 +116,59 @@ const DraggableUpdated = (props) => {
     <Animated.View style={{
         left: 0,
         top: 0,
+        width: 150,
         transform: [{ translateX: pan.x }, { translateY: pan.y }, 
-                    {scaleX: panZoom.x.interpolate({inputRange: [0,100], outputRange: [1,4]})}, 
-                    {scaleY: panZoom.y.interpolate({inputRange: [0,100], outputRange: [1,4]})}],
+          {scaleX: panZoom.x.interpolate({inputRange: [0,100], outputRange: [1,2]})}, 
+          {scaleY: panZoom.y.interpolate({inputRange: [0,100], outputRange: [1,2]})}
+                    ],
+        flexDirection: 'column',
       }}>
+      <TouchableOpacity style={{
+        position: 'absolute', 
+        zIndex: 3,
+        transform: [
+          {scaleX: panZoom.x.interpolate({inputRange: [0,100], outputRange: [1,.5]})}, 
+          {scaleY: panZoom.y.interpolate({inputRange: [0,100], outputRange: [1,.5]})}
+        ]
+      }}
+      onPress={() => {
+        console.log('pressed');
+        props.setImage(null);
+        }}>
+          <Feather name="x-circle" size={20} color="white" />
+      </TouchableOpacity>
       <Animated.View
         style={{
           left: 0,
           top: 0,
-        //   transform: [{ translateX: pan.x }, { translateY: pan.y }]
+          width: 150,
+        //   transform: [
+        //     {scaleX: panZoom.x.interpolate({inputRange: [0,100], outputRange: [1,4]})}, 
+        //   {scaleY: panZoom.y.interpolate({inputRange: [0,100], outputRange: [1,2]})}
+        // ]
         }}
         {...panResponder.panHandlers}
       >
         <Image style={styles.box} source={{uri : image}}/>
       </Animated.View>
-      <Animated.View style={{position: 'absolute', 
-                                      backgroundColor: 'white', 
-                                      aspectRatio: 1, 
-                                      width: 20,
-                                      borderRadius: 100,
-                                      left: 150,
-                                      top: 150,
+      <Animated.View style={{
+                              position: 'absolute', 
+                              backgroundColor: 'white', 
+                              aspectRatio: 1, 
+                              width: 18,
+                              top: 140,
+                              left: 140,
+                              borderRadius: 100,
+                              alignSelf: 'flex-end',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              transform: [
+                              {scaleX: panZoom.x.interpolate({inputRange: [0,100], outputRange: [1,.5]})}, 
+                              {scaleY: panZoom.y.interpolate({inputRange: [0,100], outputRange: [1,.5]})} ]
                                       }}
-                        {...expandResponder.panHandlers}></Animated.View>
+                        {...expandResponder.panHandlers}>
+                          <FontAwesome name="expand" size={16} color="black" />
+                        </Animated.View>
     </Animated.View>
   );
 }
@@ -153,8 +185,7 @@ const styles = StyleSheet.create({
   box: {
     height: 150,
     width: 150,
-    opacity: .5,
-    borderRadius: 5
+    opacity: .5
   }
 });
 

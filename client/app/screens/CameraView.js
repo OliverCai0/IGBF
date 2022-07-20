@@ -5,6 +5,9 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import Draggable from './Draggable';
 import DraggableUpdated from './DraggableUpdated';
+import { Ionicons } from '@expo/vector-icons'; 
+import { MaterialIcons } from '@expo/vector-icons'; 
+import { Entypo } from '@expo/vector-icons'; 
 
 export default function CameraView(props) {
   let cameraRef = useRef()
@@ -124,13 +127,33 @@ export default function CameraView(props) {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
-      <View style={[styles.topBar]}>
-        <Text style={styles.againstBlack}>IGBF</Text>
-          <TouchableOpacity style={[styles.button, 
-                                    {alignItems: 'flex-end', justifyContent: 'center'}
-                                    ]} onPress={() => {showCachedImages()}}>
-            <Text style={styles.text}>Cached</Text>
-          </TouchableOpacity>
+      <View style={[styles.topBar, {
+                                    backgroundColor: 'pink', 
+                                    backgroundColor: 'black',
+                                    justifyContent: 'space-between',
+                                    }]}>
+        <TouchableOpacity onPress={() => {props.setPage(0)}}>
+        <Text style={[styles.againstBlack, {fontWeight: 'bold', paddingLeft: '2%'}]}>IGBF</Text>
+        </TouchableOpacity>
+        <View style={{
+                      flex: 0,
+                      width: '25%',
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      backgroundColor: 'black',
+                      flexDirection: 'row'
+                    }}>
+            <TouchableOpacity style={[styles.button,
+                                      {justifyContent: 'center'}
+                                      ]}>
+              <Ionicons name="flash" size={20}  color="#FF01A3" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button,
+                                      {justifyContent: 'center'}
+                                      ]} onPress={() => {showCachedImages()}}>
+              <MaterialIcons name="navigate-next" size={35} color="#FF01A3" />
+            </TouchableOpacity>
+          </View>
       </View>
       <Camera style={[styles.camera]} 
               ref={cameraRef} type={type} onCameraReady={onCameraReady}
@@ -149,38 +172,91 @@ export default function CameraView(props) {
               }}>
         { cameraCoords && image &&
           <DraggableUpdated x={0} y={0} width={cameraCoords.max_x} height={cameraCoords.max_y}
-                            image={image}></DraggableUpdated>
+                            image={image}
+                            setImage={setImage}></DraggableUpdated>
         }
       </Camera>
-        <View style={styles.cameraBar}>
+        <View style={[{backgroundColor: 'black', 
+                       height: '10%', 
+                       alignItems: 'center',
+                       justifyContent: 'center'}]}>
+            <View style={{
+                borderRadius: 100,
+                aspectRatio: 1,
+                width: '18%',
+                backgroundColor: 'white',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+            <View style={{
+                borderRadius: 100,
+                aspectRatio: 1,
+                width: '85%',
+                backgroundColor: 'black',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
             <TouchableOpacity
-                style={styles.cameraButton}
+                style={{
+                  borderRadius: 100,
+                  aspectRatio: 1,
+                  width: '95%',
+                  backgroundColor: 'white',
+                }}
                 onPress={() => {
                   takePicture();
                 }}>
             </TouchableOpacity>
+            </View>
+            </View>
         </View>
-        <View style={styles.commandBar}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} 
+        <View style={{
+                        backgroundColor: 'black',
+                        height: '5%',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                      }}>
+          <View style={{
+            width: '20%',
+            backgroundColor: 'black',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <TouchableOpacity style={{}} 
             onPress={()  => {
               pickImage();
             }}>
               {(image && 
-              <TouchableOpacity onPress={() => {pickImage();}}>
-              <Image source={{uri: image}} style={{width :'20%', aspectRatio : 1}}/>
+              <TouchableOpacity 
+              onPress={() => {pickImage();}}
+              style={{
+                borderColor: 'white',
+                borderWidth: 1,
+                width: '40%'
+              }}>
+              <Image source={{uri: image}} 
+                     style={{
+                             width :'100%',
+                             aspectRatio : 1,
+                             }}/>
               </TouchableOpacity>
               ) ||
-              <Text style={styles.text}>Pick</Text>}
+              <Entypo name="images" size={24}  color="#FF01A3" />
+              }
             </TouchableOpacity>
           </View>
-          <View style={styles.buttonContainer}>
+          <View style={{
+            width: '20%',
+            backgroundColor: 'black',
+            justifyContent: 'center',
+            alignItems: 'center'
+            }}>
             <TouchableOpacity
-              style={styles.button}
+              style={{}}
               onPress={() => {
                 setType(type === CameraType.back ? CameraType.front : CameraType.back);
               }}>
-              <Text style={styles.text}> Flip </Text>
+               <Ionicons name="camera-reverse" size={24} color="#FF01A3" />
             </TouchableOpacity>
           </View>
         </View>
@@ -221,7 +297,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
-    backgroundColor: 'black',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, FlatList, Alert } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
-import { findDOMNode } from 'react-dom';
+import { AntDesign } from '@expo/vector-icons'; 
+
 
 export default function GalleryView(props) {
     const images = props.cachedImages.slice()
+    const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [hasPermission, setHasPermission] = useState(null);
     let debugProps = () => {
@@ -71,20 +73,27 @@ export default function GalleryView(props) {
     const generateImage = (x) => {
         return(
             
-            <View style={{ width: '50%', justifyContent: 'center', alignItems: 'center', backgroundColor: 'pink'}}>
+            <View style={{ width: '50%', 
+                           justifyContent: 'center', 
+                           alignItems: 'center', 
+                          //  backgroundColor: 'pink',
+                           paddingBottom: '2%'
+                           }}>
                 <TouchableOpacity key={x.item.uri} 
                                     onPress={() => 
                                     {
-                                        console.log('Selected Before',selectedImages);
-                                        if(selectedImages.includes(x.item.uri)){
-                                            let temp = selectedImages.slice();
-                                            temp.splice(temp.indexOf(x.item.uri),1);
-                                            setSelectedImages(temp);
-                                        }
-                                        else{
-                                            let temp = [...selectedImages];
-                                            temp.push(x.item.uri);
-                                            setSelectedImages(temp);
+                                        if(selectMode){
+                                          // console.log('Selected Before',selectedImages);
+                                          if(selectedImages.includes(x.item.uri)){
+                                              let temp = selectedImages.slice();
+                                              temp.splice(temp.indexOf(x.item.uri),1);
+                                              setSelectedImages(temp);
+                                          }
+                                          else{
+                                              let temp = [...selectedImages];
+                                              temp.push(x.item.uri);
+                                              setSelectedImages(temp);
+                                          }
                                         }
                                     }}
                                     style={(selectedImages.includes(x.item.uri)) ? styles.selectedImageContainer 
@@ -108,17 +117,25 @@ export default function GalleryView(props) {
     return(
         <View style={styles.container}>
             <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
-            <View style={{height: '10%', backgroundColor: 'white'}}>
-                <View style={{alignSelf: 'flex-start'}}>
-                    <Text style={{fontSize: 50}}>IGBF</Text>
-                </View>
+            <View style={{height: '8%',  
+                          justifyContent: 'space-between', 
+                          flexDirection: 'row',
+                          }}>
+                <TouchableOpacity style={{paddingLeft: '2%', 
+                              backgroundColor: 'white',
+                              justifyContent: 'center'}}
+                              onPress={() => {props.setPage(0)}}>
+                    <Text style={{fontSize: 50, fontWeight: 'bold'}}>IGBF</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{backgroundColor: 'white',
+                              justifyContent: 'center',
+                              paddingRight: '2%'}}
+                              onPress={() => {
+                                setSelectMode(!selectMode);
+                              }}>
+                  <AntDesign name="checkcircleo" size={40} color={selectMode ? "#FF01A3" : 'black'} />
+                </TouchableOpacity>
             </View>
-            {/* <View style={styles.galleryContainer}>
-                    {props.cachedImages.map(x => generateImage(x))}
-            </View> */}
-            <TouchableOpacity style={{height: '10%', backgroundColor: 'red'}} onPress={debugProps }>
-                <Text>Go Back For Now</Text>
-            </TouchableOpacity>
             <FlatList
                 data={images}
                 renderItem={generateImage}
@@ -126,12 +143,41 @@ export default function GalleryView(props) {
                 numColumns={2}
                 columnWrapperStyle={{justifyContent: 'space-between'}}
             />
-            <View style={{backgroundColor: 'black', height: '10%', flexDirection: 'row'}}>
-                <TouchableOpacity onPress={deleteImages} style={{flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center'}}>
-                    <Text>Delete</Text>
+            <View style={{ 
+                          height: '8%', 
+                          flexDirection: 'row',
+                          justifyContent: 'space-evenly',
+                          alignItems: 'center'}}>
+                <TouchableOpacity onPress={deleteImages} 
+                                  style={{
+                                          backgroundColor: 'white', 
+                                          alignItems: 'center', 
+                                          justifyContent: 'center',
+                                          borderColor: 'black',
+                                          borderWidth: 2,
+                                          height: '75%',
+                                          width: '40%'}}>
+                    <Text style={{
+                      fontWeight: 'bold',
+                      fontSize: 20
+                    }}>Delete</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={save}style={{flex: 1, backgroundColor: 'blue', alignItems: 'center', justifyContent: 'center'}}>
-                    <Text>Save</Text>
+                <TouchableOpacity onPress={save}
+                                  style={{
+                                    backgroundColor: 'white', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    borderColor: 'black',
+                                    borderWidth: 2,
+                                    height: '75%',
+                                    width: '40%',
+                                    backgroundColor: "#FF01A3"
+                                    }}
+                                          >
+                    <Text style={{
+                      fontWeight: 'bold',
+                      fontSize: 20
+                    }}>Save</Text>
                 </TouchableOpacity>
             </View>
             <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
