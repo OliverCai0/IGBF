@@ -2,7 +2,7 @@
   "expo": {
     "name": "IGBF",
     "slug": "IGBF",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/IGBF-icon.png",
     "userInterfaceStyle": "light",
@@ -19,7 +19,13 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.oliver0.IGBF"
+      "bundleIdentifier": "com.oliver0.IGBF",
+      "buildNumber" : "3",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow access to the camera to take pictures.",
+        "NSPhotoLibraryUsageDescription" : "Allow access to pictures from your image library to overlay them ontop of the camera.",
+        "NSPhotoLibraryAddUsageDescription" : "Allow access to store your taken pictures in your library."
+      }
     },
     "android": {
       "adaptiveIcon": {
