@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { Animated, StyleSheet, Text, View, TouchableOpacity, PanResponder, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
+import { Camera, CameraType, FlashMode } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import Draggable from './Draggable';
@@ -8,10 +8,14 @@ import DraggableUpdated from './DraggableUpdated';
 import { Ionicons } from '@expo/vector-icons'; 
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { Entypo } from '@expo/vector-icons'; 
+import {PinchGestureHandler} from 'react-native-gesture-handler';
 
 export default function CameraView(props) {
   let cameraRef = useRef()
   let cachedImages = props.cachedImages
+  // const panZoom = useRef(new Animated.Value(0)).current;
+  const [zoom, setZoom] = useState(0);
+  const [flash, setFlash] = useState(FlashMode.off);
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(CameraType.back);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -23,6 +27,22 @@ export default function CameraView(props) {
   const { height, width } = Dimensions.get('window');
   const screenRatio = height / width;
   const [isRatioSet, setIsRatioSet] =  useState(false);
+
+  const onPinchGestureEvent = (nativeEvent) => {
+    var scale = nativeEvent.nativeEvent.scale
+    var velocity = nativeEvent.nativeEvent.velocity / 20
+   
+     let newZoom =
+     velocity > 0
+     ? zoom + scale * velocity * (Platform.OS === "ios" ? 0.01 : 25)
+     : zoom -
+       scale * Math.abs(velocity) * (Platform.OS === "ios" ? 0.02 : 50);
+   
+    if (newZoom < 0) newZoom = 0;
+    else if (newZoom > 0.5) newZoom = 0.5;
+   
+    setZoom(newZoom)
+   };
 
   const onCameraReady = async() => {
     setIsCameraReady(true);
@@ -39,7 +59,7 @@ export default function CameraView(props) {
       aspect: [4, 3],
       quality: 1,
     });
-    console.log(result);
+    //console.log(result);
 
     if (!result.cancelled) {
       setImage(result.uri);
@@ -105,9 +125,9 @@ export default function CameraView(props) {
   };
 
   const showCachedImages = () => {
-    for(let i = 0; i < props.cachedImages.length; i ++){
-      console.log(props.cachedImages[i].uri)
-    }
+    // for(let i = 0; i < props.cachedImages.length; i ++){
+    //   console.log(props.cachedImages[i].uri)
+    // }
     props.setPage(2);
   }
 
@@ -145,7 +165,8 @@ export default function CameraView(props) {
                     }}>
             <TouchableOpacity style={[styles.button,
                                       {justifyContent: 'center'}
-                                      ]}>
+                                      ]}
+                              onPress={() => {setFlash(flash == 'off' ? FlashMode.on : FlashMode.off)}}>
               <Ionicons name="flash" size={20}  color="#FF01A3" />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button,
@@ -155,14 +176,18 @@ export default function CameraView(props) {
             </TouchableOpacity>
           </View>
       </View>
+      <PinchGestureHandler style={[styles.camera]} onGestureEvent={onPinchGestureEvent}>
       <Camera style={[styles.camera]} 
-              ref={cameraRef} type={type} onCameraReady={onCameraReady}
+              zoom={zoom}
+              ref={cameraRef} type={type} 
+              onCameraReady={onCameraReady} 
+              flashMode={flash}
               onLayout={ event => {
                 const layout = event.nativeEvent.layout;
-                console.log('height:', layout.height);
-                console.log('width:', layout.width);
-                console.log('Camera x:', layout.x);
-                console.log('Camera y:', layout.y);
+                // console.log('height:', layout.height);
+                // console.log('width:', layout.width);
+                // console.log('Camera x:', layout.x);
+                // console.log('Camera y:', layout.y);
                 setCameraCoords({
                   min_x : 0,
                   min_y : 0,
@@ -176,6 +201,7 @@ export default function CameraView(props) {
                             setImage={setImage}></DraggableUpdated>
         }
       </Camera>
+      </PinchGestureHandler>
         <View style={[{backgroundColor: 'black', 
                        height: '10%', 
                        alignItems: 'center',

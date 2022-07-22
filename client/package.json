@@ -20,6 +20,8 @@
     "react-native": "0.68.2",
     "react-native-draggable": "^3.3.0",
     "react-native-easy-gestures": "1.0.x",
+    "react-native-gesture-handler": "~2.2.1",
+    "react-native-vision-camera": "^2.14.0",
     "react-native-web": "0.17.7"
   },
   "devDependencies": {

@@ -8,7 +8,7 @@ const DraggableUpdated = (props) => {
   const height = props.height;
   const image = props.image;
   const startingHeight = 150;
-  console.log(height)
+  // console.log(height)
   const [x, setX] = useState(props.x);
   const [y, setY] = useState(props.y);
 
@@ -38,7 +38,7 @@ const DraggableUpdated = (props) => {
       // The accumulated gesture distance since becoming responder is
       // gestureState.d{x,y}
       Animated.event([null, {dx: panZoom.x, dy: panZoom.y}], {useNativeDriver: false})(e, gestureState)
-      console.log('size pan', panZoom);
+      //console.log('size pan', panZoom);
     },
     onPanResponderTerminationRequest: (evt, gestureState) =>
       true,
@@ -71,9 +71,9 @@ const DraggableUpdated = (props) => {
       },
       onPanResponderMove: (e, gestureState) => {
         // console.log('Gesture',gestureState);
-        console.log('Pan',pan);
-        console.log('Pan-y', pan.y)
-        console.log('Pan-y-offset', pan.y._value)
+        // console.log('Pan',pan);
+        // console.log('Pan-y', pan.y)
+        // console.log('Pan-y-offset', pan.y._value)
         if(pan.y < 0){
             Animated.event(
                 [
@@ -93,9 +93,9 @@ const DraggableUpdated = (props) => {
         )(e, gestureState)}
         },
       onPanResponderRelease: () => {
-        console.log('flattened')
+        // console.log('flattened')
         pan.flattenOffset();
-        console.log('Flattened Pan: ', pan)
+        // console.log('Flattened Pan: ', pan)
         if(pan.y._value < 0){
             pan.y.setValue(0);
         }
@@ -132,7 +132,7 @@ const DraggableUpdated = (props) => {
         ]
       }}
       onPress={() => {
-        console.log('pressed');
+        // console.log('pressed');
         props.setImage(null);
         }}>
           <Feather name="x-circle" size={20} color="white" />
