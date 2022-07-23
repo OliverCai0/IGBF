@@ -2,12 +2,12 @@
   "expo": {
     "name": "IGBF",
     "slug": "IGBF",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/IGBF-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/IGBF-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,16 +18,25 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.oliver0.IGBF",
+      "buildNumber": "5",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow this app access to your camera so you can take pictures with a custom image overlay.",
+        "NSPhotoLibraryUsageDescription": "Allow access to pictures from your image library to overlay them ontop of the camera.",
+        "NSPhotoLibraryAddUsageDescription": "Allow access to your library to save any pictures you've taken with this app."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/IGBF-icon.png",
         "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+    ]
   }
 }

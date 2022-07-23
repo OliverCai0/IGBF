@@ -1,14 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { Animated, StyleSheet, Text, View, TouchableOpacity, PanResponder, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
+import { Camera, CameraType, FlashMode } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
+import Draggable from './Draggable';
+import DraggableUpdated from './DraggableUpdated';
+import { Ionicons } from '@expo/vector-icons'; 
+import { MaterialIcons } from '@expo/vector-icons'; 
+import { Entypo } from '@expo/vector-icons'; 
+import {PinchGestureHandler} from 'react-native-gesture-handler';
 
 export default function CameraView(props) {
   let cameraRef = useRef()
   let cachedImages = props.cachedImages
+  // const panZoom = useRef(new Animated.Value(0)).current;
+  const [zoom, setZoom] = useState(0);
+  const [flash, setFlash] = useState(FlashMode.off);
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(CameraType.back);
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [image, setImage] = useState(null);
+  const [cameraCoords, setCameraCoords] = useState(null);
 
   const [imagePadding, setImagePadding] = useState(0);
   const [ratio, setRatio] = useState('4:3');  // default is 4:3
@@ -16,10 +28,41 @@ export default function CameraView(props) {
   const screenRatio = height / width;
   const [isRatioSet, setIsRatioSet] =  useState(false);
 
+  const onPinchGestureEvent = (nativeEvent) => {
+    var scale = nativeEvent.nativeEvent.scale
+    var velocity = nativeEvent.nativeEvent.velocity / 20
+   
+     let newZoom =
+     velocity > 0
+     ? zoom + scale * velocity * (Platform.OS === "ios" ? 0.01 : 25)
+     : zoom -
+       scale * Math.abs(velocity) * (Platform.OS === "ios" ? 0.02 : 50);
+   
+    if (newZoom < 0) newZoom = 0;
+    else if (newZoom > 0.5) newZoom = 0.5;
+   
+    setZoom(newZoom)
+   };
+
   const onCameraReady = async() => {
     setIsCameraReady(true);
     if (!isRatioSet) {
       await prepareRatio();
+    }
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    //console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
     }
   };
 
@@ -82,9 +125,9 @@ export default function CameraView(props) {
   };
 
   const showCachedImages = () => {
-    for(let i = 0; i < props.cachedImages.length; i ++){
-      console.log(props.cachedImages[i].uri)
-    }
+    // for(let i = 0; i < props.cachedImages.length; i ++){
+    //   console.log(props.cachedImages[i].uri)
+    // }
     props.setPage(2);
   }
 
@@ -104,33 +147,143 @@ export default function CameraView(props) {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
-      <View style={styles.topBar}>
-        <Text style={styles.againstBlack}>IGBF</Text>
-      </View>
-      <Camera style={[styles.camera, {marginTop: imagePadding, marginBottom: imagePadding}]} ref={cameraRef} type={type} onCameraReady={onCameraReady}></Camera>
-        <View style={styles.commandBar}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                setType(type === CameraType.back ? CameraType.front : CameraType.back);
-              }}>
-              <Text style={styles.text}> Flip </Text>
+      <View style={[styles.topBar, {
+                                    backgroundColor: 'pink', 
+                                    backgroundColor: 'black',
+                                    justifyContent: 'space-between',
+                                    }]}>
+        <TouchableOpacity onPress={() => {props.setPage(0)}}>
+        <Text style={[styles.againstBlack, {fontWeight: 'bold', paddingLeft: '2%'}]}>IGBF</Text>
+        </TouchableOpacity>
+        <View style={{
+                      flex: 0,
+                      width: '25%',
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      backgroundColor: 'black',
+                      flexDirection: 'row'
+                    }}>
+            <TouchableOpacity style={[styles.button,
+                                      {justifyContent: 'center'}
+                                      ]}
+                              onPress={() => {setFlash(flash == 'off' ? FlashMode.on : FlashMode.off)}}>
+              <Ionicons name="flash" size={20}  color="#FF01A3" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button,
+                                      {justifyContent: 'center'}
+                                      ]} onPress={() => {showCachedImages()}}>
+              <MaterialIcons name="navigate-next" size={35} color="#FF01A3" />
             </TouchableOpacity>
           </View>
-          <View style={styles.buttonContainer}>
+      </View>
+      <PinchGestureHandler style={[styles.camera]} onGestureEvent={onPinchGestureEvent}>
+      <Camera style={[styles.camera]} 
+              zoom={zoom}
+              ref={cameraRef} type={type} 
+              onCameraReady={onCameraReady} 
+              flashMode={flash}
+              onLayout={ event => {
+                const layout = event.nativeEvent.layout;
+                // console.log('height:', layout.height);
+                // console.log('width:', layout.width);
+                // console.log('Camera x:', layout.x);
+                // console.log('Camera y:', layout.y);
+                setCameraCoords({
+                  min_x : 0,
+                  min_y : 0,
+                  max_x : layout.width,
+                  max_y : layout.height
+                })
+              }}>
+        { cameraCoords && image &&
+          <DraggableUpdated x={0} y={0} width={cameraCoords.max_x} height={cameraCoords.max_y}
+                            image={image}
+                            setImage={setImage}></DraggableUpdated>
+        }
+      </Camera>
+      </PinchGestureHandler>
+        <View style={[{backgroundColor: 'black', 
+                       height: '10%', 
+                       alignItems: 'center',
+                       justifyContent: 'center'}]}>
+            <View style={{
+                borderRadius: 100,
+                aspectRatio: 1,
+                width: '18%',
+                backgroundColor: 'white',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+            <View style={{
+                borderRadius: 100,
+                aspectRatio: 1,
+                width: '85%',
+                backgroundColor: 'black',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
             <TouchableOpacity
-                style={styles.button}
+                style={{
+                  borderRadius: 100,
+                  aspectRatio: 1,
+                  width: '95%',
+                  backgroundColor: 'white',
+                }}
                 onPress={() => {
                   takePicture();
                 }}>
-            <Text style={styles.text}> Take Picture </Text>
+            </TouchableOpacity>
+            </View>
+            </View>
+        </View>
+        <View style={{
+                        backgroundColor: 'black',
+                        height: '5%',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                      }}>
+          <View style={{
+            width: '20%',
+            backgroundColor: 'black',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <TouchableOpacity style={{}} 
+            onPress={()  => {
+              pickImage();
+            }}>
+              {(image && 
+              <TouchableOpacity 
+              onPress={() => {pickImage();}}
+              style={{
+                borderColor: 'white',
+                borderWidth: 1,
+                width: '40%'
+              }}>
+              <Image source={{uri: image}} 
+                     style={{
+                             width :'100%',
+                             aspectRatio : 1,
+                             }}/>
+              </TouchableOpacity>
+              ) ||
+              <Entypo name="images" size={24}  color="#FF01A3" />
+              }
             </TouchableOpacity>
           </View>
-          <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={() => {showCachedImages()}}>
-                <Text style={styles.text}>Show Cached</Text>
-              </TouchableOpacity>
+          <View style={{
+            width: '20%',
+            backgroundColor: 'black',
+            justifyContent: 'center',
+            alignItems: 'center'
+            }}>
+            <TouchableOpacity
+              style={{}}
+              onPress={() => {
+                setType(type === CameraType.back ? CameraType.front : CameraType.back);
+              }}>
+               <Ionicons name="camera-reverse" size={24} color="#FF01A3" />
+            </TouchableOpacity>
           </View>
         </View>
         <SafeAreaView style={styles.safeAreaView}></SafeAreaView>
@@ -150,6 +303,18 @@ const styles = StyleSheet.create({
   camera: {
     flex: 10,
   },
+  cameraBar: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+  },
+  cameraButton: {
+    borderRadius: 100,
+    aspectRatio: 1,
+    width: '15%',
+    backgroundColor: 'white',
+  },
   commandBar: {
     flexDirection: 'row',
     flex: 1,
@@ -158,7 +323,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
-    backgroundColor: 'black',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -179,5 +343,6 @@ const styles = StyleSheet.create({
   topBar: {
     flex: 1,
     backgroundColor: 'black',
+    flexDirection: 'row',
   }
 });
