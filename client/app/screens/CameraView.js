@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Animated, StyleSheet, Text, View, TouchableOpacity, PanResponder, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
-import { Camera, CameraType, FlashMode } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import Draggable from './Draggable';
@@ -8,48 +7,22 @@ import DraggableUpdated from './DraggableUpdated';
 import { Ionicons } from '@expo/vector-icons'; 
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { Entypo } from '@expo/vector-icons'; 
-import {PinchGestureHandler} from 'react-native-gesture-handler';
+import {TapGestureHandler} from 'react-native-gesture-handler';
+import { Camera, useCameraDevices } from 'react-native-vision-camera';
+import { useNavigation } from '@react-navigation/native';
 
 export default function CameraView(props) {
-  let cameraRef = useRef()
-  let cachedImages = props.cachedImages
-  // const panZoom = useRef(new Animated.Value(0)).current;
-  const [zoom, setZoom] = useState(0);
-  const [flash, setFlash] = useState(FlashMode.off);
-  const [hasPermission, setHasPermission] = useState(null);
-  const [type, setType] = useState(CameraType.back);
-  const [isCameraReady, setIsCameraReady] = useState(false);
+  let camera = useRef()
+  const navigator = useNavigation()
+  const [showBack, setShowBack] = useState(false)
+  const [hasPermission, setHasPermission] = useState(true);
   const [image, setImage] = useState(null);
   const [cameraCoords, setCameraCoords] = useState(null);
-
-  const [imagePadding, setImagePadding] = useState(0);
-  const [ratio, setRatio] = useState('4:3');  // default is 4:3
+  const [flash, setFlash] = useState(false)
   const { height, width } = Dimensions.get('window');
-  const screenRatio = height / width;
-  const [isRatioSet, setIsRatioSet] =  useState(false);
 
-  const onPinchGestureEvent = (nativeEvent) => {
-    var scale = nativeEvent.nativeEvent.scale
-    var velocity = nativeEvent.nativeEvent.velocity / 20
-   
-     let newZoom =
-     velocity > 0
-     ? zoom + scale * velocity * (Platform.OS === "ios" ? 0.01 : 25)
-     : zoom -
-       scale * Math.abs(velocity) * (Platform.OS === "ios" ? 0.02 : 50);
-   
-    if (newZoom < 0) newZoom = 0;
-    else if (newZoom > 0.5) newZoom = 0.5;
-   
-    setZoom(newZoom)
-   };
-
-  const onCameraReady = async() => {
-    setIsCameraReady(true);
-    if (!isRatioSet) {
-      await prepareRatio();
-    }
-  };
+  const devices = useCameraDevices()
+  const device = showBack ? devices.back : devices.front
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
@@ -66,80 +39,50 @@ export default function CameraView(props) {
     }
   };
 
-  // set the camera ratio and padding.
-  // this code assumes a portrait mode screen
-  const prepareRatio = async () => {
-    let desiredRatio = '4:3';  // Start with the system default
-    // This issue only affects Android
-    if (Platform.OS === 'android') {
-      const ratios = await camera.getSupportedRatiosAsync();
-
-      // Calculate the width/height of each of the supported camera ratios
-      // These width/height are measured in landscape mode
-      // find the ratio that is closest to the screen ratio without going over
-      let distances = {};
-      let realRatios = {};
-      let minDistance = null;
-      for (const ratio of ratios) {
-        const parts = ratio.split(':');
-        const realRatio = parseInt(parts[0]) / parseInt(parts[1]);
-        realRatios[ratio] = realRatio;
-        // ratio can't be taller than screen, so we don't want an abs()
-        const distance = screenRatio - realRatio; 
-        distances[ratio] = realRatio;
-        if (minDistance == null) {
-          minDistance = ratio;
-        } else {
-          if (distance >= 0 && distance < distances[minDistance]) {
-            minDistance = ratio;
-          }
-        }
-      }
-      // set the best match
-      desiredRatio = minDistance;
-      //  calculate the difference between the camera width and the screen height
-      const remainder = Math.floor(
-        (height - realRatios[desiredRatio] * width) / 2
-      );
-      // set the preview padding and preview ratio
-      setImagePadding(remainder);
-      setRatio(desiredRatio);
-      // Set a flag so we don't do this 
-      // calculation each time the screen refreshes
-      setIsRatioSet(true);
+  const onPressFocus = async (nativeEvent) => {
+    console.log('Pressed', Object.keys(nativeEvent))
+    console.log('Value', nativeEvent.nativeEvent)
+    if (device.supportsFocus()){
+      await camera.current.focus({x: 0, y: 0})
     }
-  };
+  }
 
   const takePicture = async () => {
     console.log('picture taken');
     let options = {
       quality: 1,
       base64: true,
-      exif: false
+      exif: false,
+      flash: flash ? 'on' : 'off'
     };
     
-    let newPhoto = await cameraRef.current.takePictureAsync(options);
-    var cachedImagesCopy = props.cachedImages.slice()
-    cachedImagesCopy.push(newPhoto)
-    props.setCachedImages(cachedImagesCopy)
+    let newPhoto = await camera.current.takePhoto(options);
+    props.setCachedImages([...props.cachedImages, newPhoto])
+    console.log('Photo', newPhoto)
   };
 
   const showCachedImages = () => {
     // for(let i = 0; i < props.cachedImages.length; i ++){
     //   console.log(props.cachedImages[i].uri)
     // }
-    props.setPage(2);
+    navigator.navigate('Gallery')
   }
 
   useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
 
-  if (hasPermission === null) {
-    return <View />;
+    (async () => {
+      Camera.getCameraPermissionStatus()
+      .then((authorization) => {
+        if(authorization === 'authorized'){
+          console.log('Authorization', authorization)
+          setHasPermission(true)
+        }
+      })
+    })()
+  }, [])
+
+  if (hasPermission === null || device === undefined) {
+    return <Text>No access to camera</Text>;
   }
   if (hasPermission === false) {
     return <Text>No access to camera</Text>;
@@ -152,7 +95,7 @@ export default function CameraView(props) {
                                     backgroundColor: 'black',
                                     justifyContent: 'space-between',
                                     }]}>
-        <TouchableOpacity onPress={() => {props.setPage(0)}}>
+        <TouchableOpacity onPress={() => {navigator.navigate('SignUp')}}>
         <Text style={[styles.againstBlack, {fontWeight: 'bold', paddingLeft: '2%'}]}>IGBF</Text>
         </TouchableOpacity>
         <View style={{
@@ -176,8 +119,8 @@ export default function CameraView(props) {
             </TouchableOpacity>
           </View>
       </View>
-      <PinchGestureHandler style={[styles.camera]} onGestureEvent={onPinchGestureEvent}>
-      <Camera style={[styles.camera]} 
+      <TapGestureHandler style={[styles.camera]} onHandlerStateChange={onPressFocus}>
+      {/* <Camera style={[styles.camera]} 
               zoom={zoom}
               ref={cameraRef} type={type} 
               onCameraReady={onCameraReady} 
@@ -200,8 +143,35 @@ export default function CameraView(props) {
                             image={image}
                             setImage={setImage}></DraggableUpdated>
         }
+      </Camera> */}
+      <Camera
+      ref={camera}
+      device={device}
+      isActive={true}
+      style={[styles.camera]}
+      enableZoomGesture={true}
+      photo={true}
+      onLayout={ event => {
+        const layout = event.nativeEvent.layout;
+        // console.log('height:', layout.height);
+        // console.log('width:', layout.width);
+        // console.log('Camera x:', layout.x);
+        // console.log('Camera y:', layout.y);
+        setCameraCoords({
+          min_x : 0,
+          min_y : 0,
+          max_x : layout.width,
+          max_y : layout.height
+        })
+      }}
+      >
+        { cameraCoords && image &&
+          <DraggableUpdated x={0} y={0} width={cameraCoords.max_x} height={cameraCoords.max_y}
+                            image={image}
+                            setImage={setImage}></DraggableUpdated>
+        }
       </Camera>
-      </PinchGestureHandler>
+      </TapGestureHandler>
         <View style={[{backgroundColor: 'black', 
                        height: '10%', 
                        alignItems: 'center',
@@ -280,7 +250,7 @@ export default function CameraView(props) {
             <TouchableOpacity
               style={{}}
               onPress={() => {
-                setType(type === CameraType.back ? CameraType.front : CameraType.back);
+                setShowBack(showBack ? false : true);
               }}>
                <Ionicons name="camera-reverse" size={24} color="#FF01A3" />
             </TouchableOpacity>

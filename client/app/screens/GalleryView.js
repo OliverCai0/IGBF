@@ -2,19 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, FlatList, Alert } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { AntDesign } from '@expo/vector-icons'; 
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function GalleryView(props) {
-    const images = props.cachedImages.slice()
+    const images = props.cachedImages
     const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [hasPermission, setHasPermission] = useState(null);
-    let debugProps = () => {
-        for(let i = 0; i < props.cachedImages.length; i ++){
-            console.log(props.cachedImages[i].uri);
-            }
-        props.setPage(1);
-    }
+    const navigation = useNavigation()
+    // let debugProps = () => {
+    //     for(let i = 0; i < props.cachedImages.length; i ++){
+    //         console.log(props.cachedImages[i].uri);
+    //         }
+    //     props.setPage(1);
+    // }
 
     const deleteImages = () => {
         for (let index = 0; index < selectedImages.length; index++) {
@@ -67,10 +69,12 @@ export default function GalleryView(props) {
         console.log('continued');
         props.setCachedImages([]);
         setSelectedImages([]);
-        props.setPage(1);
+        navigation.navigate('Camera')
     }
 
     const generateImage = (x) => {
+      console.log(x)
+      console.log(x.item.path)
         return(
             
             <View style={{ width: '50%', 
@@ -79,27 +83,27 @@ export default function GalleryView(props) {
                           //  backgroundColor: 'pink',
                            paddingBottom: '2%'
                            }}>
-                <TouchableOpacity key={x.item.uri} 
+                <TouchableOpacity key={x.index} 
                                     onPress={() => 
                                     {
                                         if(selectMode){
-                                          // console.log('Selected Before',selectedImages);
-                                          if(selectedImages.includes(x.item.uri)){
+                
+                                          if(selectedImages.includes(x.index)){
                                               let temp = selectedImages.slice();
-                                              temp.splice(temp.indexOf(x.item.uri),1);
+                                              temp.splice(temp.indexOf(x.index),1);
                                               setSelectedImages(temp);
                                           }
                                           else{
                                               let temp = [...selectedImages];
-                                              temp.push(x.item.uri);
+                                              temp.push(x.index);
                                               setSelectedImages(temp);
                                           }
                                         }
                                     }}
-                                    style={(selectedImages.includes(x.item.uri)) ? styles.selectedImageContainer 
+                                    style={(selectedImages.includes(x.index)) ? styles.selectedImageContainer 
                                         : styles.imageContainer } 
                                     >
-                         <Image source={{ uri: "data:image/jpg;base64," + x.item.base64 }}
+                         <Image source={{uri : x.item.path}}
                              style={{width: 50 * 3, height: 80 * 3}}/>
                 </TouchableOpacity>
             </View>
@@ -124,7 +128,7 @@ export default function GalleryView(props) {
                 <TouchableOpacity style={{paddingLeft: '2%', 
                               backgroundColor: 'white',
                               justifyContent: 'center'}}
-                              onPress={() => {props.setPage(0)}}>
+                              onPress={() => {navigation.navigate('SignUp')}}>
                     <Text style={{fontSize: 50, fontWeight: 'bold'}}>IGBF</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{backgroundColor: 'white',
