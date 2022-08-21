@@ -9,9 +9,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons'; 
 import {TapGestureHandler} from 'react-native-gesture-handler';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
+import { useNavigation } from '@react-navigation/native';
 
 export default function CameraView(props) {
   let camera = useRef()
+  const navigator = useNavigation()
   const [showBack, setShowBack] = useState(false)
   const [hasPermission, setHasPermission] = useState(true);
   const [image, setImage] = useState(null);
@@ -63,7 +65,7 @@ export default function CameraView(props) {
     // for(let i = 0; i < props.cachedImages.length; i ++){
     //   console.log(props.cachedImages[i].uri)
     // }
-    props.setPage(2);
+    navigator.navigate('Gallery')
   }
 
   useEffect(() => {
@@ -93,7 +95,7 @@ export default function CameraView(props) {
                                     backgroundColor: 'black',
                                     justifyContent: 'space-between',
                                     }]}>
-        <TouchableOpacity onPress={() => {props.setPage(0)}}>
+        <TouchableOpacity onPress={() => {navigator.navigate('SignUp')}}>
         <Text style={[styles.againstBlack, {fontWeight: 'bold', paddingLeft: '2%'}]}>IGBF</Text>
         </TouchableOpacity>
         <View style={{

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, FlatList, Alert } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { AntDesign } from '@expo/vector-icons'; 
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function GalleryView(props) {
@@ -9,12 +10,13 @@ export default function GalleryView(props) {
     const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [hasPermission, setHasPermission] = useState(null);
-    let debugProps = () => {
-        for(let i = 0; i < props.cachedImages.length; i ++){
-            console.log(props.cachedImages[i].uri);
-            }
-        props.setPage(1);
-    }
+    const navigation = useNavigation()
+    // let debugProps = () => {
+    //     for(let i = 0; i < props.cachedImages.length; i ++){
+    //         console.log(props.cachedImages[i].uri);
+    //         }
+    //     props.setPage(1);
+    // }
 
     const deleteImages = () => {
         for (let index = 0; index < selectedImages.length; index++) {
@@ -67,7 +69,7 @@ export default function GalleryView(props) {
         console.log('continued');
         props.setCachedImages([]);
         setSelectedImages([]);
-        props.setPage(1);
+        navigation.navigate('Camera')
     }
 
     const generateImage = (x) => {
@@ -126,7 +128,7 @@ export default function GalleryView(props) {
                 <TouchableOpacity style={{paddingLeft: '2%', 
                               backgroundColor: 'white',
                               justifyContent: 'center'}}
-                              onPress={() => {props.setPage(0)}}>
+                              onPress={() => {navigation.navigate('SignUp')}}>
                     <Text style={{fontSize: 50, fontWeight: 'bold'}}>IGBF</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{backgroundColor: 'white',
