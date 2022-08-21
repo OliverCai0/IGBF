@@ -16,3 +16,6 @@
 - Able to rotate photo overlay element
 - User accounts
 - Page to download and upload photos
+
+## Development for IOS
+- Set up according to https://reactnative.dev/docs/running-on-device or run expo https://docs.expo.dev/workflow/ios-simulator/
