@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import CameraView from './app/screens/CameraView'
 import GalleryView from './app/screens/GalleryView';
 import WelcomeView from './app/screens/Welcome';
+import NewCameraView from './app/screens/NewCameraView';
 
 export default function App() {
   const [page, setPage] = useState(0);
@@ -19,6 +20,7 @@ export default function App() {
         <CameraView setPage={setPage} 
                     setCachedImages={setCachedImages}
                     cachedImages={cachedImages}/>
+        // <NewCameraView setPage={setPage}/>
       );
     case 2:
       return (

@@ -5,7 +5,7 @@ import { AntDesign } from '@expo/vector-icons';
 
 
 export default function GalleryView(props) {
-    const images = props.cachedImages.slice()
+    const images = props.cachedImages
     const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [hasPermission, setHasPermission] = useState(null);
@@ -71,6 +71,8 @@ export default function GalleryView(props) {
     }
 
     const generateImage = (x) => {
+      console.log(x)
+      console.log(x.item.path)
         return(
             
             <View style={{ width: '50%', 
@@ -79,27 +81,27 @@ export default function GalleryView(props) {
                           //  backgroundColor: 'pink',
                            paddingBottom: '2%'
                            }}>
-                <TouchableOpacity key={x.item.uri} 
+                <TouchableOpacity key={x.index} 
                                     onPress={() => 
                                     {
                                         if(selectMode){
-                                          // console.log('Selected Before',selectedImages);
-                                          if(selectedImages.includes(x.item.uri)){
+                
+                                          if(selectedImages.includes(x.index)){
                                               let temp = selectedImages.slice();
-                                              temp.splice(temp.indexOf(x.item.uri),1);
+                                              temp.splice(temp.indexOf(x.index),1);
                                               setSelectedImages(temp);
                                           }
                                           else{
                                               let temp = [...selectedImages];
-                                              temp.push(x.item.uri);
+                                              temp.push(x.index);
                                               setSelectedImages(temp);
                                           }
                                         }
                                     }}
-                                    style={(selectedImages.includes(x.item.uri)) ? styles.selectedImageContainer 
+                                    style={(selectedImages.includes(x.index)) ? styles.selectedImageContainer 
                                         : styles.imageContainer } 
                                     >
-                         <Image source={{ uri: "data:image/jpg;base64," + x.item.base64 }}
+                         <Image source={{uri : x.item.path}}
                              style={{width: 50 * 3, height: 80 * 3}}/>
                 </TouchableOpacity>
             </View>

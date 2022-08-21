@@ -31,12 +31,14 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/IGBF-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.oliver0.IGBF"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "react-native-vision-camera"
     ]
   }
 }
