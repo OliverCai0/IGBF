@@ -18,5 +18,5 @@
 - Page to download and upload photos
 
 ## Development for IOS
-- Set up according to https://reactnative.dev/docs/running-on-device or run expo https://docs.expo.dev/workflow/ios-simulator/
+- Set up according to https://reactnative.dev/docs/running-on-device or run expo https://docs.expo.dev/workflow/ios-simulator/ (expo run:ios)
 - npm start dev to run client
