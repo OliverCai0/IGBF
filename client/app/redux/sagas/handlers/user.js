@@ -6,10 +6,14 @@ function* handleSignUp(action) {
     try{
         console.log('Trying', action)
         const response = yield call(addNewUser, action)
-        console.log('Response', response)
-        // Set User? Not sure how to handle JWT token for now, can use Async Storage if needed
-        // Also not sure the formatting is gonna look like on this side so im putting a JSON parse
-        yield put(setUser(JSON.parse(response)))
+        console.log('Response', response.data.result.token)
+        console.log('Keys', Object.keys(response.data))
+        const data = {
+            email: response.data.result.email,
+            token: response.data.result.token,
+            uuid: response.data.result._id
+        }
+        yield put(setUser(data))
     }catch(error) {
         console.log(error)
     }

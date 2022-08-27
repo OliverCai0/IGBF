@@ -3,28 +3,21 @@ import { StyleSheet, Text, View, TouchableOpacity, Image, SafeAreaView, FlatList
 import * as MediaLibrary from 'expo-media-library';
 import { AntDesign } from '@expo/vector-icons'; 
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { removePhoto, savePhotos } from '../redux/ducks/photos';
 
 
 export default function GalleryView(props) {
-    const images = props.cachedImages
+    const dispatch = useDispatch();
+    const images = useSelector((state) => state.photos)
     const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [hasPermission, setHasPermission] = useState(null);
     const navigation = useNavigation()
-    // let debugProps = () => {
-    //     for(let i = 0; i < props.cachedImages.length; i ++){
-    //         console.log(props.cachedImages[i].uri);
-    //         }
-    //     props.setPage(1);
-    // }
-
+    console.log('Gallery_images', images)
     const deleteImages = () => {
-        for (let index = 0; index < selectedImages.length; index++) {
-            const element = selectedImages[index];
-            let temp = props.cachedImages;
-            temp.splice(temp.findIndex((x) => x.uri == element), 1);
-            props.setCachedImages(temp);
-        }
+        console.log('Selected before removal', selectedImages)
+        dispatch(removePhoto(selectedImages))
         Alert.alert(
             "Deleted Images from Cache",
             "Keep going lol",
@@ -48,8 +41,10 @@ export default function GalleryView(props) {
         console.log('triggered')
         for (let index = 0; index < selectedImages.length; index++) {
             const element = selectedImages[index];
-            await MediaLibrary.saveToLibraryAsync(element);
+            console.log('saving element:', images[element].path)
+            await MediaLibrary.saveToLibraryAsync(images[element].path);
         }
+        dispatch(savePhotos(selectedImages))
         Alert.alert(
             "Saved to Library",
             "Have a nice day!",
@@ -67,7 +62,6 @@ export default function GalleryView(props) {
             }
           )
         console.log('continued');
-        props.setCachedImages([]);
         setSelectedImages([]);
         navigation.navigate('Camera')
     }

@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Animated, StyleSheet, Text, View, TouchableOpacity, PanResponder, Image, SafeAreaView, Dimensions, Platform } from 'react-native';
-import * as MediaLibrary from 'expo-media-library';
+import { Image, StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Draggable from './Draggable';
 import DraggableUpdated from './DraggableUpdated';
 import { Ionicons } from '@expo/vector-icons'; 
 import { MaterialIcons } from '@expo/vector-icons'; 
@@ -10,9 +8,12 @@ import { Entypo } from '@expo/vector-icons';
 import {TapGestureHandler} from 'react-native-gesture-handler';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { addPhoto } from '../redux/ducks/photos';
 
 export default function CameraView(props) {
   let camera = useRef()
+  const dispatch = useDispatch()
   const navigator = useNavigation()
   const [showBack, setShowBack] = useState(false)
   const [hasPermission, setHasPermission] = useState(true);
@@ -32,9 +33,9 @@ export default function CameraView(props) {
       aspect: [4, 3],
       quality: 1,
     });
-    //console.log(result);
 
-    if (!result.cancelled) {
+    if (result && !result.cancelled) {
+      console.log('Photo', result.uri);
       setImage(result.uri);
     }
   };
@@ -42,7 +43,7 @@ export default function CameraView(props) {
   const onPressFocus = async (nativeEvent) => {
     console.log('Pressed', Object.keys(nativeEvent))
     console.log('Value', nativeEvent.nativeEvent)
-    if (device.supportsFocus()){
+    if (device.supportsFocus){
       await camera.current.focus({x: 0, y: 0})
     }
   }
@@ -57,14 +58,11 @@ export default function CameraView(props) {
     };
     
     let newPhoto = await camera.current.takePhoto(options);
-    props.setCachedImages([...props.cachedImages, newPhoto])
+    dispatch(addPhoto(newPhoto))
     console.log('Photo', newPhoto)
   };
 
   const showCachedImages = () => {
-    // for(let i = 0; i < props.cachedImages.length; i ++){
-    //   console.log(props.cachedImages[i].uri)
-    // }
     navigator.navigate('Gallery')
   }
 
@@ -120,30 +118,6 @@ export default function CameraView(props) {
           </View>
       </View>
       <TapGestureHandler style={[styles.camera]} onHandlerStateChange={onPressFocus}>
-      {/* <Camera style={[styles.camera]} 
-              zoom={zoom}
-              ref={cameraRef} type={type} 
-              onCameraReady={onCameraReady} 
-              flashMode={flash}
-              onLayout={ event => {
-                const layout = event.nativeEvent.layout;
-                // console.log('height:', layout.height);
-                // console.log('width:', layout.width);
-                // console.log('Camera x:', layout.x);
-                // console.log('Camera y:', layout.y);
-                setCameraCoords({
-                  min_x : 0,
-                  min_y : 0,
-                  max_x : layout.width,
-                  max_y : layout.height
-                })
-              }}>
-        { cameraCoords && image &&
-          <DraggableUpdated x={0} y={0} width={cameraCoords.max_x} height={cameraCoords.max_y}
-                            image={image}
-                            setImage={setImage}></DraggableUpdated>
-        }
-      </Camera> */}
       <Camera
       ref={camera}
       device={device}
@@ -153,10 +127,6 @@ export default function CameraView(props) {
       photo={true}
       onLayout={ event => {
         const layout = event.nativeEvent.layout;
-        // console.log('height:', layout.height);
-        // console.log('width:', layout.width);
-        // console.log('Camera x:', layout.x);
-        // console.log('Camera y:', layout.y);
         setCameraCoords({
           min_x : 0,
           min_y : 0,

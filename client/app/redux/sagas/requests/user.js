@@ -5,7 +5,7 @@ export function addNewUser(action){
     const password = action.payload.password
     console.log('Request ', action)
     return axios.post(
-        'http://localhost:6000/users/signup', {
+        'http://192.168.1.7:6000/users/signup', {
             email,
             password
         }
