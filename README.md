@@ -1,5 +1,5 @@
 # IGBF - Social Media Photography App
-- https://apps.apple.com/us/app/igbff/id1635373087
+- Please email olivercai@uchicago.edu for a testflight link :)
 
 ## Current Features in Production
 - Working camera component with zoom and flash.
