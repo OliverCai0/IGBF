@@ -15,7 +15,7 @@ app.use("/users", userRouter); // http://localhost:6000/users/signup
 
 const MONGODB_URL = "mongodb+srv://IGBF:eNK8Gt9Z33ML3ctO@cluster0.fjswv.mongodb.net/user_db?retryWrites=true&w=majority"
 
-const port = 6000;
+const port = process.env.port || 6000;
 
 mongoose.connect(MONGODB_URL)
     .then(() => {
